@@ -21,17 +21,8 @@ namespace BotPoc.Dialogs
 
             if (message.Text.ToLower() == "payments")
             {
-                await this.InitiatePaymentsDialog(context);
+                context.Call(new PaymentsDialog(), this.ResumeAfterDialog);
             }
-
-            await context.PostAsync($"DONE");
-
-            context.Done(this);
-        }
-
-        private async Task InitiatePaymentsDialog(IDialogContext context)
-        {
-            context.Call(new PaymentsDialog(), this.ResumeAfterDialog);
         }
 
         private async Task ResumeAfterDialog(IDialogContext context, IAwaitable<object> result)
