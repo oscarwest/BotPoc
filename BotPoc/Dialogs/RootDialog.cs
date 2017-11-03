@@ -2,30 +2,52 @@
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Connector;
+using BotPoc.Dialogs.Payments;
+using System.Threading;
 
 namespace BotPoc.Dialogs
 {
     [Serializable]
     public class RootDialog : IDialog<object>
     {
-        public Task StartAsync(IDialogContext context)
+        public async Task StartAsync(IDialogContext context)
         {
-            context.Wait(MessageReceivedAsync);
-
-            return Task.CompletedTask;
+            context.Wait(this.MessageReceivedAsync);
         }
 
-        private async Task MessageReceivedAsync(IDialogContext context, IAwaitable<object> result)
+        private async Task MessageReceivedAsync(IDialogContext context, IAwaitable<IMessageActivity> result)
         {
-            var activity = await result as Activity;
+            var message = await result;
 
-            // calculate something for us to return
-            int length = (activity.Text ?? string.Empty).Length;
+            if (message.Text.ToLower() == "payments")
+            {
+                await this.InitiatePaymentsDialog(context);
+            }
 
-            // return our reply to the user
-            await context.PostAsync($"You sent {activity.Text} which was {length} characters");
+            await context.PostAsync($"DONE");
 
-            context.Wait(MessageReceivedAsync);
+            context.Done(this);
+        }
+
+        private async Task InitiatePaymentsDialog(IDialogContext context)
+        {
+            context.Call(new PaymentsDialog(), this.ResumeAfterDialog);
+        }
+
+        private async Task ResumeAfterDialog(IDialogContext context, IAwaitable<object> result)
+        {
+            try
+            {
+                var message = await result;
+            }
+            catch (Exception ex)
+            {
+                await context.PostAsync($"Failed with message: {ex.Message}");
+            }
+            finally
+            {
+                context.Done(this);
+            }
         }
     }
 }

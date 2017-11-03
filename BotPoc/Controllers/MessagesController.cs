@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Connector;
+using System.Collections.Generic;
+using BotPoc.Services;
 
 namespace BotPoc
 {
@@ -14,21 +16,21 @@ namespace BotPoc
         /// POST: api/Messages
         /// Receive a message from a user and reply to it
         /// </summary>
-        public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
-        {
-            if (activity.Type == ActivityTypes.Message)
-            {
-                await Conversation.SendAsync(activity, () => new Dialogs.EchoDialog());
-            }
-            else
-            {
-                HandleSystemMessage(activity);
-            }
-            var response = Request.CreateResponse(HttpStatusCode.OK);
-            return response;
-        }
+public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
+{
+    if (activity.Type == ActivityTypes.Message)
+    {
+        await Conversation.SendAsync(activity, () => new Dialogs.RootDialog());
+    }
+    else
+    {
+        await HandleSystemMessageAsync(activity);
+    }
+    var response = Request.CreateResponse(HttpStatusCode.OK);
+    return response;
+}
 
-        private Activity HandleSystemMessage(Activity message)
+        private async Task<Activity> HandleSystemMessageAsync(Activity message)
         {
             if (message.Type == ActivityTypes.DeleteUserData)
             {
@@ -37,9 +39,36 @@ namespace BotPoc
             }
             else if (message.Type == ActivityTypes.ConversationUpdate)
             {
-                // Handle conversation state changes, like members being added and removed
-                // Use Activity.MembersAdded and Activity.MembersRemoved and Activity.Action for info
-                // Not available in all channels
+                IConversationUpdateActivity iConversationUpdated = message as IConversationUpdateActivity;
+                if (iConversationUpdated != null)
+                {
+                    ConnectorClient connector = new ConnectorClient(new System.Uri(message.ServiceUrl));
+
+                    foreach (var member in iConversationUpdated.MembersAdded ?? System.Array.Empty<ChannelAccount>())
+                    {
+                        // if the bot is added, then 
+                        if (member.Id == iConversationUpdated.Recipient.Id)
+                        {
+                            var reply = ((Activity)iConversationUpdated).CreateReply($"Hej Oscar, hur jag kan hjälpa dig? Välj ett produktområde eller skriv något :)");
+                            var engagements = await new EngagementService().GetEngagements();
+
+                            List<CardAction> actions = new List<CardAction>();
+                            foreach (var engagement in engagements)
+                            {
+                                actions.Add(new CardAction() { Title = engagement.Type.ToString(), Type = ActionTypes.ImBack, Value = engagement.Type.ToString() });
+                            }
+
+                            reply.Type = ActivityTypes.Message;
+                            reply.TextFormat = TextFormatTypes.Plain;
+                            reply.SuggestedActions = new SuggestedActions()
+                            {
+                                Actions = actions
+                            };
+
+                            await connector.Conversations.ReplyToActivityAsync(reply);
+                        }
+                    }
+                }
             }
             else if (message.Type == ActivityTypes.ContactRelationUpdate)
             {
