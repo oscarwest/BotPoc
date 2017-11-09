@@ -22,6 +22,9 @@ namespace BotPoc.Dialogs
             if (message.Text.ToLower() == "payments")
             {
                 context.Call(new PaymentsDialog(), this.ResumeAfterDialog);
+            } else if (message.Text.ToLower() == "cms")
+            {
+                context.Call(new BotCMSDialog(), this.ResumeAfterDialog);
             }
         }
 

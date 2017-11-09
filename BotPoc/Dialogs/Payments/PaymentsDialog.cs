@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using BotPoc.Helpers;
 
 namespace BotPoc.Dialogs.Payments
 {
@@ -13,7 +14,7 @@ namespace BotPoc.Dialogs.Payments
     {
         public async Task StartAsync(IDialogContext context)
         {
-            var msg = await this.CreateCardActionMessage(context, new List<CardAction>()
+            var msg = await MessageActivityHelper.CreateCardActionMessage(context, new List<CardAction>()
             {
                 new CardAction() { Title = "Mina fakturor", Type = ActionTypes.PostBack, Value = "Mina fakturor" },
                 new CardAction() { Title = "Ränta och avgifter", Type = ActionTypes.ImBack, Value = "Ränta och avgifter" },
@@ -36,14 +37,14 @@ namespace BotPoc.Dialogs.Payments
             switch (messageText)
             {
                 case "Mina fakturor":
-                    msg = await this.CreateCardActionMessage(context, new List<CardAction>()
+                    msg = await MessageActivityHelper.CreateCardActionMessage(context, new List<CardAction>()
                     {
                         new CardAction() { Title = "Fakturaleverans", Type = ActionTypes.PostBack, Value = "Fakturaleverans", DisplayText = "Fakturaleverans info displaytext", Text = "Fakturaleverans info text" }
                     });
                     await context.PostAsync(msg);
                     break;
                 case "Fakturaleverans":
-                    msg = await this.CreateCardActionMessage(context, new List<CardAction>()
+                    msg = await MessageActivityHelper.CreateCardActionMessage(context, new List<CardAction>()
                     {
                         new CardAction() { Title = "Hur skickas min faktura?", Type = ActionTypes.PostBack, Value = "Hur skickas min faktura?" },
                         new CardAction() { Title = "Varför ser jag inte min faktura?", Type = ActionTypes.PostBack, Value = "Varför ser jag inte min faktura?" },
@@ -57,23 +58,7 @@ namespace BotPoc.Dialogs.Payments
                     break;
             }
 
-
-            //await context.PostAsync("paymentDialog received");
-
             context.Wait(this.MessageReceivedAsync);
-        }
-
-        private async Task<IMessageActivity> CreateCardActionMessage(IDialogContext context, List<CardAction> cardActions)
-        {
-            var msg = context.MakeMessage();
-            msg.Type = ActivityTypes.Message;
-            msg.TextFormat = TextFormatTypes.Plain;
-            msg.SuggestedActions = new SuggestedActions()
-            {
-                Actions = cardActions
-            };
-
-            return await Task.FromResult(msg);
         }
     }
 }
