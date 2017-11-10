@@ -14,46 +14,51 @@ namespace BotPoc.Dialogs
     [Serializable]
     public class LuisSmartDialog : LuisDialog<object>
     {
+        public override async Task StartAsync(IDialogContext context)
+        {
+            await context.PostAsync($"BOT AI Dialog");
+
+            context.Wait(MessageReceived);
+        }
+
         [LuisIntent("payments-information-invoice")]
         public async Task ShowInvoiceInformation(IDialogContext context, LuisResult result)
         {
-
-
-            //var reply = activity.CreateReply("I have colors in mind, but need your help to choose the best one.");
-            //reply.Type = ActivityTypes.Message;
-            //reply.TextFormat = TextFormatTypes.Plain;
-
-            //reply.SuggestedActions = new SuggestedActions()
-            //{
-            //    Actions = new List<CardAction>()
-            //    {
-            //        new CardAction(){ Title = "Blue", Type=ActionTypes.ImBack, Value="Blue" },
-            //        new CardAction(){ Title = "Red", Type=ActionTypes.ImBack, Value="Red" },
-            //        new CardAction(){ Title = "Green", Type=ActionTypes.ImBack, Value="Green" }
-            //    }
-            //};
-
-
-
             var invoice = new InvoiceInfo();
             invoice.InvoiceNumber = "123456";
             invoice.Amount = 400m;
 
             await context.PostAsync($"Information kring din faktura: {invoice.InvoiceNumber} med belopp {invoice.Amount}");
+
+            context.Wait(MessageReceived);
+        }
+
+        [LuisIntent("payments-pay-invoice")]
+        public async Task PayInvoice(IDialogContext context, LuisResult result)
+        {
+            var invoice = new InvoiceInfo();
+            invoice.InvoiceNumber = "123456";
+            invoice.Amount = 400m;
+
+            await context.PostAsync($"Visa guidat flöde för att betala din faktura (FormFlow)");
+
+            context.Wait(MessageReceived);
         }
 
         [LuisIntent("")]
+        [LuisIntent("None")]
         public async Task None(IDialogContext context, LuisResult result)
         {
 
-            var qnaDialog = new BasicQnAMakerDialog();
+            //var qnaDialog = new BasicQnAMakerDialog();
             var messageToForward = result.Query;
 
-            await context.Forward(qnaDialog, AfterFAQDialog, messageToForward, CancellationToken.None);
+            //await context.Forward(qnaDialog, AfterFAQDialog, messageToForward, CancellationToken.None);
 
-            //string message = $"Jag förstår inte vad du menar...";
-            //await context.PostAsync(message);
-            //context.Wait(MessageReceived);
+            string message = $"Jag förstår inte vad du menar...";
+            await context.PostAsync(message);
+
+            context.Wait(MessageReceived);
         }
 
         private async Task AfterFAQDialog(IDialogContext context, IAwaitable<object> result)

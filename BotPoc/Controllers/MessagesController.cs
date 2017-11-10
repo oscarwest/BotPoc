@@ -51,20 +51,30 @@ namespace BotPoc
                         if (member.Id == iConversationUpdated.Recipient.Id)
                         {
                             var reply = ((Activity)iConversationUpdated).CreateReply($"Hej Oscar, hur jag kan hjälpa dig? Välj ett produktområde eller skriv något :)");
-                            var engagements = await new EngagementService().GetEngagements();
-
-                            List<CardAction> actions = new List<CardAction>();
-                            foreach (var engagement in engagements)
-                            {
-                                actions.Add(new CardAction() { Title = engagement.Type.ToString(), Type = ActionTypes.ImBack, Value = engagement.Type.ToString() });
-                            }
-
                             reply.Type = ActivityTypes.Message;
                             reply.TextFormat = TextFormatTypes.Plain;
                             reply.SuggestedActions = new SuggestedActions()
                             {
-                                Actions = actions
+                                Actions = new List<CardAction>()
+                                {
+                                    new CardAction() { Title = "CMS", DisplayText = "CMSDisplay", Text = "CMSText", Type = ActionTypes.ImBack, Value = "CMSText" },
+                                    new CardAction() { Title = "AI", DisplayText = "AIDisplay", Text = "AIText", Type = ActionTypes.ImBack, Value = "AIText" },
+                                }
                             };
+                            //var engagements = await new EngagementService().GetEngagements();
+
+                            //List<CardAction> actions = new List<CardAction>();
+                            //foreach (var engagement in engagements)
+                            //{
+                            //    actions.Add(new CardAction() { Title = engagement.Type.ToString(), Type = ActionTypes.ImBack, Value = engagement.Type.ToString() });
+                            //}
+
+                            //reply.Type = ActivityTypes.Message;
+                            //reply.TextFormat = TextFormatTypes.Plain;
+                            //reply.SuggestedActions = new SuggestedActions()
+                            //{
+                            //    Actions = actions
+                            //};
 
                             await connector.Conversations.ReplyToActivityAsync(reply);
                         }

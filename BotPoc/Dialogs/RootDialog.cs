@@ -19,10 +19,10 @@ namespace BotPoc.Dialogs
         {
             var message = await result;
 
-            if (message.Text.ToLower() == "payments")
+            if (message.Text.ToLower() == "aitext")
             {
-                context.Call(new PaymentsDialog(), this.ResumeAfterDialog);
-            } else if (message.Text.ToLower() == "cms")
+                context.Call(new LuisSmartDialog(), this.ResumeAfterDialog);
+            } else if (message.Text.ToLower() == "cmstext")
             {
                 context.Call(new BotCMSDialog(), this.ResumeAfterDialog);
             }
